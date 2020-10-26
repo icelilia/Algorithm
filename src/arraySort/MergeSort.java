@@ -2,35 +2,24 @@ package arraySort;
 
 import java.util.ArrayList;
 
-public class MergeSort extends ArraySort {
-    /**
-     * 构造方法
-     *
-     * @param array   待排数组对象
-     * @param incSort 是否增量排序，true为增量，false为减量
-     */
-    public MergeSort(ArrayList<Integer> array, boolean incSort) {
-        originalArray = array;
-        this.incSort = incSort;
-        orderlyArray = new ArrayList<Integer>(originalArray.size());
-        for (int i = 0; i < originalArray.size(); i++) {
-            orderlyArray.add(originalArray.get(i));
-        }
-    }
+public class MergeSort {
+    private static ArrayList<Integer> orderlyArray;
 
-    @Override
-    public ArrayList<Integer> sort() {
+    public static ArrayList<Integer> sort(ArrayList<Integer> originalArray, boolean incSort) {
         if (originalArray == null) {
             // 视情况进行异常处理
             return null;
         }
 
         int length = originalArray.size();
+        orderlyArray = new ArrayList<>(length);
+        orderlyArray.addAll(originalArray);
+
         if (length == 0 || length == 1) {
             return orderlyArray;
         }
 
-        mergeSort(0, length - 1);
+        mergeSort(0, length - 1, incSort);
         return orderlyArray;
     }
 
@@ -40,12 +29,12 @@ public class MergeSort extends ArraySort {
      * @param leftIndex  当前待排区间的左下标
      * @param rightIndex 当前待排区间的右下标
      */
-    private void mergeSort(int leftIndex, int rightIndex) {
+    private static void mergeSort(int leftIndex, int rightIndex, boolean incSort) {
         if (leftIndex < rightIndex) {
             int middleIndex = leftIndex + rightIndex >> 1;
-            mergeSort(leftIndex, middleIndex);
-            mergeSort(middleIndex + 1, rightIndex);
-            merge(leftIndex, rightIndex);
+            mergeSort(leftIndex, middleIndex, incSort);
+            mergeSort(middleIndex + 1, rightIndex, incSort);
+            merge(leftIndex, rightIndex, incSort);
         }
     }
 
@@ -55,7 +44,7 @@ public class MergeSort extends ArraySort {
      * @param leftIndex  当前排序区间的左下标
      * @param rightIndex 当前排序区间的右下标
      */
-    private void merge(int leftIndex, int rightIndex) {
+    private static void merge(int leftIndex, int rightIndex, boolean incSort) {
         int middleIndex = (leftIndex + rightIndex) >> 1;
         int l = leftIndex;
         int r = middleIndex + 1;

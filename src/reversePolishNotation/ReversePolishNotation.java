@@ -21,7 +21,7 @@ public class ReversePolishNotation {
      */
     public static String toPolishNotation(String str) {
         stack.clear();
-        if (!new BracketMatch(str).isMatch()) {
+        if (!BracketMatch.isMatch(str)) {
             return null;
         }
         char[] charArray = str.toCharArray();

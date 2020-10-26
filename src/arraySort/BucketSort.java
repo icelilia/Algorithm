@@ -2,39 +2,28 @@ package arraySort;
 
 import java.util.ArrayList;
 
-public class BucketSort extends ArraySort {
-    /**
-     * 构造方法
-     *
-     * @param array   待排数组对象
-     * @param incSort 是否增量排序，true为增量，false为减量
-     */
-    public BucketSort(ArrayList<Integer> array, boolean incSort) {
-        originalArray = array;
-        this.incSort = incSort;
-        orderlyArray = new ArrayList<Integer>(originalArray.size());
-        for (int i = 0; i < originalArray.size(); i++) {
-            orderlyArray.add(originalArray.get(i));
-        }
-    }
+public class BucketSort {
+    private static ArrayList<Integer> orderlyArray;
 
-    @Override
-    public ArrayList<Integer> sort() {
+    public static ArrayList<Integer> sort(ArrayList<Integer> originalArray, boolean incSort) {
         if (originalArray == null) {
             // 视情况进行异常处理
             return null;
         }
 
         int length = originalArray.size();
+        orderlyArray = new ArrayList<>(length);
+        orderlyArray.addAll(originalArray);
+
         if (length == 0 || length == 1) {
             return orderlyArray;
         }
 
-        bucketSort(0, length - 1);
+        bucketSort(0, length - 1, incSort);
         return orderlyArray;
     }
 
-    private void bucketSort(int leftIndex, int rightIndex) {
+    private static void bucketSort(int leftIndex, int rightIndex, boolean incSort) {
         int length = rightIndex - leftIndex + 1;
 
         // 确定最大值和最小值
@@ -62,21 +51,21 @@ public class BucketSort extends ArraySort {
 
         // 构造桶
         int bucketCount = (maximum - minimum) / length + 1;
-        ArrayList<ArrayList<Integer>> bucketList = new ArrayList<ArrayList<Integer>>(bucketCount);
+        ArrayList<ArrayList<Integer>> bucketList = new ArrayList<>(bucketCount);
         for (int i = 0; i < bucketCount; i++) {
-            bucketList.add(new ArrayList<Integer>());
+            bucketList.add(new ArrayList<>());
         }
 
         // 填充桶
         for (int i = leftIndex; i <= rightIndex; i++) {
             int x = orderlyArray.get(i);
+            int bucketIndex;
             if (incSort) {
-                int bucketIndex = (x - minimum) / length;
-                bucketList.get(bucketIndex).add(x);
+                bucketIndex = (x - minimum) / length;
             } else {
-                int bucketIndex = (maximum - x) / length;
-                bucketList.get(bucketIndex).add(x);
+                bucketIndex = (maximum - x) / length;
             }
+            bucketList.get(bucketIndex).add(x);
 
         }
 
@@ -86,16 +75,14 @@ public class BucketSort extends ArraySort {
         for (int i = 0; i < bucketList.size(); i++) {
             // 使用插入排序
             bucket = bucketList.get(i);
-            bucketList.set(i, new InsertSort(bucket, incSort).sort());
+            bucketList.set(i, InsertSort.sort(bucket, incSort));
         }
 
         // 复制到orderlyArray
         orderlyArray.clear();
-        for (int i = 0; i < bucketList.size(); i++) {
-            bucket = bucketList.get(i);
-            for (int j = 0; j < bucket.size(); j++) {
-                orderlyArray.add(bucket.get(j));
-            }
+        for (ArrayList<Integer> integers : bucketList) {
+            bucket = integers;
+            orderlyArray.addAll(bucket);
         }
     }
 }

@@ -20,8 +20,7 @@ public class Main {
         array.add(9);
         array.add(8);
 
-        ArraySort arraySort = new BucketSort(array, false);
-        ArrayList<Integer> res = arraySort.sort();
+        ArrayList<Integer> res = BucketSort.sort(array, true);
 
         for (Integer i : res) {
             System.out.println(i);
