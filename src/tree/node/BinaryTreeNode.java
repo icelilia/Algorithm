@@ -1,12 +1,12 @@
-package tree;
+package tree.node;
 
-public class Node<Key, Value> {
+public class BinaryTreeNode<Key, Value> {
     private Key key;
     private Value value;
-    private Node<?, ?> left;
-    private Node<?, ?> right;
+    private BinaryTreeNode<Key, Value> left;
+    private BinaryTreeNode<Key, Value> right;
 
-    public Node(Key key, Value value) {
+    public BinaryTreeNode(Key key, Value value) {
         this.key = key;
         this.value = value;
     }
@@ -27,19 +27,19 @@ public class Node<Key, Value> {
         this.value = value;
     }
 
-    public Node<?, ?> getLeft() {
+    public BinaryTreeNode<Key, Value> getLeft() {
         return left;
     }
 
-    public void setLeft(Node<?, ?> left) {
+    public void setLeft(BinaryTreeNode<Key, Value> left) {
         this.left = left;
     }
 
-    public Node<?, ?> getRight() {
+    public BinaryTreeNode<Key, Value> getRight() {
         return right;
     }
 
-    public void setRight(Node<?, ?> right) {
+    public void setRight(BinaryTreeNode<Key, Value> right) {
         this.right = right;
     }
 }

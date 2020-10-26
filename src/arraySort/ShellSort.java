@@ -2,10 +2,20 @@ package arraySort;
 
 import java.util.ArrayList;
 
+/**
+ * @author Spotted_Dog
+ */
 public class ShellSort {
     private static ArrayList<Integer> orderlyArray;
 
-    public ArrayList<Integer> sort(ArrayList<Integer> originalArray, boolean incSort) {
+    /**
+     * 通用的方法调用
+     *
+     * @param originalArray 待排数组
+     * @param isIncSort     是否增量排序
+     * @return 新的有序数组
+     */
+    public ArrayList<Integer> sort(ArrayList<Integer> originalArray, boolean isIncSort) {
         if (originalArray == null) {
             // 视情况进行异常处理
             return null;
@@ -19,11 +29,11 @@ public class ShellSort {
             return orderlyArray;
         }
 
-        shellSort(0, length - 1, incSort);
+        shellSort(0, length - 1, isIncSort);
         return orderlyArray;
     }
 
-    private static void shellSort(int leftIndex, int rightIndex, boolean incSort) {
+    private static void shellSort(int leftIndex, int rightIndex, boolean isIncSort) {
         int length = rightIndex - leftIndex + 1;
         int step = 1;
         while (step < length >> 1) {
@@ -32,7 +42,7 @@ public class ShellSort {
         while (step >= 1) {
             for (int i = leftIndex + step; i <= rightIndex; i++) {
                 for (int j = i - step; j >= leftIndex; j = j - step) {
-                    if (incSort) {
+                    if (isIncSort) {
                         if (orderlyArray.get(j) > orderlyArray.get(j + step)) {
                             swapValue(j, j + step);
                         }

@@ -3,10 +3,21 @@ package arraySort;
 import java.util.ArrayList;
 import java.util.Random;
 
+/**
+ * @author Spotted_Dog
+ */
 public class QuickSort {
     private static ArrayList<Integer> orderlyArray;
 
-    public static ArrayList<Integer> sort(ArrayList<Integer> originalArray, boolean incSort, boolean stable) {
+    /**
+     * 通用的方法调用
+     *
+     * @param originalArray 待排数组
+     * @param isIncSort     是否增量排序
+     * @param isStableSort  是否稳定排序
+     * @return 新的有序数组
+     */
+    public static ArrayList<Integer> sort(ArrayList<Integer> originalArray, boolean isIncSort, boolean isStableSort) {
         if (originalArray == null) {
             // 视情况进行异常处理
             return null;
@@ -20,7 +31,7 @@ public class QuickSort {
             return orderlyArray;
         }
 
-        quickSort(0, length - 1, incSort, stable);
+        quickSort(0, length - 1, isIncSort, isStableSort);
         return orderlyArray;
     }
 
@@ -30,14 +41,14 @@ public class QuickSort {
      * @param leftIndex  当前待排区间的左下标
      * @param rightIndex 当前待排区间的右下标
      */
-    private static void quickSort(int leftIndex, int rightIndex, boolean incSort, boolean stable) {
+    private static void quickSort(int leftIndex, int rightIndex, boolean isIncSort, boolean isStableSort) {
         if (leftIndex >= rightIndex) {
             return;
         }
         // 稳定性判断
-        int pivotIndex = stable ? partitionStable(leftIndex, rightIndex, incSort) : partitionUnStable(leftIndex, rightIndex, incSort);
-        quickSort(leftIndex, pivotIndex - 1, incSort, stable);
-        quickSort(pivotIndex + 1, rightIndex, incSort, stable);
+        int pivotIndex = isStableSort ? partitionStable(leftIndex, rightIndex, isIncSort) : partitionUnStable(leftIndex, rightIndex, isIncSort);
+        quickSort(leftIndex, pivotIndex - 1, isIncSort, isStableSort);
+        quickSort(pivotIndex + 1, rightIndex, isIncSort, isStableSort);
     }
 
     /**
@@ -47,7 +58,7 @@ public class QuickSort {
      * @param rightIndex 当前待排区间的左下标
      * @return 分割完成后，主元pivot的下标
      */
-    private static int partitionStable(int leftIndex, int rightIndex, boolean incSort) {
+    private static int partitionStable(int leftIndex, int rightIndex, boolean isIncSort) {
         Random random = new Random();
         int pivotIndex = random.nextInt(rightIndex - leftIndex + 1) + leftIndex;
         int pivotValue = orderlyArray.get(pivotIndex);
@@ -55,7 +66,7 @@ public class QuickSort {
         ArrayList<Integer> leftArray = new ArrayList<>();
         ArrayList<Integer> rightArray = new ArrayList<>();
 
-        if (incSort) {
+        if (isIncSort) {
             for (int i = leftIndex; i <= rightIndex; i++) {
                 if (i == pivotIndex) {
                     continue;
@@ -114,7 +125,7 @@ public class QuickSort {
      * @param rightIndex 当前待排区间的左下标
      * @return 分割完成后，主元pivot的下标
      */
-    private static int partitionUnStable(int leftIndex, int rightIndex, boolean incSort) {
+    private static int partitionUnStable(int leftIndex, int rightIndex, boolean isIncSort) {
         Random random = new Random();
         int pivotIndex = random.nextInt(rightIndex - leftIndex + 1) + leftIndex;
         int pivotValue = orderlyArray.get(pivotIndex);
@@ -122,7 +133,7 @@ public class QuickSort {
 
         int i = leftIndex - 1;
 
-        if (incSort) {
+        if (isIncSort) {
             // (leftIndex, i]为小于pivotValue的区间
             // [i + 1, j)为大于pivotValue的区间
             for (int j = leftIndex; j < rightIndex; j++) {

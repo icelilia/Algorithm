@@ -2,11 +2,20 @@ package arraySort;
 
 import java.util.ArrayList;
 
+/**
+ * @author Spotted_Dog
+ */
 public class SelectSort {
     private static ArrayList<Integer> orderlyArray;
 
-
-    public static ArrayList<Integer> sort(ArrayList<Integer> originalArray, boolean incSort) {
+    /**
+     * 通用的方法调用
+     *
+     * @param originalArray 待排数组
+     * @param isIncSort     是否增量排序
+     * @return 新的有序数组
+     */
+    public static ArrayList<Integer> sort(ArrayList<Integer> originalArray, boolean isIncSort) {
         if (originalArray == null) {
             // 视情况进行异常处理
             return null;
@@ -20,12 +29,12 @@ public class SelectSort {
             return orderlyArray;
         }
 
-        selectSort(0, length - 1, incSort);
+        selectSort(0, length - 1, isIncSort);
         return orderlyArray;
     }
 
-    private static void selectSort(int leftIndex, int rightIndex, boolean incSort) {
-        if (incSort) {
+    private static void selectSort(int leftIndex, int rightIndex, boolean isIncSort) {
+        if (isIncSort) {
             int maximum;
             int maximumIndex;
             for (int i = leftIndex; i <= rightIndex; i++) {
