@@ -4,11 +4,12 @@ import java.util.ArrayList;
 
 import arraySort.*;
 import reversePolishNotation.ReversePolishNotation;
+import tylorFormula.TylorFormula;
 
 public class Main {
 
     public static void main(String[] args) {
-        ArrayList<Integer> array = new ArrayList<Integer>();
+        ArrayList<Integer> array = new ArrayList<>();
         array.add(5);
         array.add(4);
         array.add(1);
@@ -28,6 +29,12 @@ public class Main {
 
         String str = "a+b*(b+c/d)/g";
         System.out.println(ReversePolishNotation.toPolishNotation(str));
+
+        System.out.println(TylorFormula.powE(1.5, 10));
+        System.out.println(Math.pow(Math.E, 1.5));
+
+        System.out.println(TylorFormula.lnX(1.5, 10));
+        System.out.println(Math.log(1.5));
     }
 
 }
