@@ -1,8 +1,8 @@
-package tylorFormula;
+package taylorFormula;
 
-public class TylorFormula {
+public class TaylorFormula {
 
-    public static double powE(double x, int accuracy) {
+    public static double xPowerOfE(double x, int accuracy) {
         double res = 1.0;
         for (int i = 1; i < accuracy; i++) {
             res += (simplePow(x, i) / factorial(i));
@@ -35,9 +35,9 @@ public class TylorFormula {
         if (x == 0L) {
             return 1;
         }
-        long res = 1;
-        for (long i = 1; i <= x; i++) {
-            res *= i;
+        long res = 1L;
+        for (int i = 1; i <= x; i++) {
+            res = (res * i) % Long.MAX_VALUE;
         }
         return res;
     }

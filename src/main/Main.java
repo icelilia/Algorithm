@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 import arraySort.*;
 import reversePolishNotation.ReversePolishNotation;
-import tylorFormula.TylorFormula;
+import taylorFormula.TaylorFormula;
 
 public class Main {
 
@@ -30,10 +30,10 @@ public class Main {
         String str = "a+b*(b+c/d)/g";
         System.out.println(ReversePolishNotation.toPolishNotation(str));
 
-        System.out.println(TylorFormula.powE(1.5, 10));
+        System.out.println(TaylorFormula.xPowerOfE(1.5, 50));
         System.out.println(Math.pow(Math.E, 1.5));
 
-        System.out.println(TylorFormula.lnX(1.5, 10));
+        System.out.println(TaylorFormula.lnX(1.5, 50));
         System.out.println(Math.log(1.5));
     }
 
