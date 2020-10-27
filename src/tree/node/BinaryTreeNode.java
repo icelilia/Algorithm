@@ -1,45 +1,51 @@
 package tree.node;
 
-public class BinaryTreeNode<Key, Value> {
-    private Key key;
-    private Value value;
-    private BinaryTreeNode<Key, Value> left;
-    private BinaryTreeNode<Key, Value> right;
 
-    public BinaryTreeNode(Key key, Value value) {
+public class BinaryTreeNode implements Comparable<BinaryTreeNode> {
+    private String key;
+    private int value;
+    private BinaryTreeNode left;
+    private BinaryTreeNode right;
+
+    public BinaryTreeNode(String key, int value) {
         this.key = key;
         this.value = value;
     }
 
-    public Key getKey() {
+    public String getKey() {
         return key;
     }
 
-    public void setKey(Key key) {
+    public void setKey(String key) {
         this.key = key;
     }
 
-    public Value getValue() {
+    public int getValue() {
         return value;
     }
 
-    public void setValue(Value value) {
+    public void setValue(int value) {
         this.value = value;
     }
 
-    public BinaryTreeNode<Key, Value> getLeft() {
+    public BinaryTreeNode getLeft() {
         return left;
     }
 
-    public void setLeft(BinaryTreeNode<Key, Value> left) {
+    public void setLeft(BinaryTreeNode left) {
         this.left = left;
     }
 
-    public BinaryTreeNode<Key, Value> getRight() {
+    public BinaryTreeNode getRight() {
         return right;
     }
 
-    public void setRight(BinaryTreeNode<Key, Value> right) {
+    public void setRight(BinaryTreeNode right) {
         this.right = right;
+    }
+
+    @Override
+    public int compareTo(BinaryTreeNode o) {
+        return value - o.getValue();
     }
 }
