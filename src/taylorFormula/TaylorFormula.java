@@ -2,6 +2,16 @@ package taylorFormula;
 
 public class TaylorFormula {
 
+    private static long[] factorialList = new long[50];
+
+    static {
+        factorialList[0] = 1L;
+        factorialList[1] = 1L;
+        for (int i = 2; i < 50; i++) {
+            factorialList[i] = factorialList[i - 1] * i;
+        }
+    }
+
     public static double xPowerOfE(double x, int accuracy) {
         double res = 1.0;
         for (int i = 1; i < accuracy; i++) {
@@ -22,6 +32,11 @@ public class TaylorFormula {
         return res;
     }
 
+    public static double pow(double x, double y, int accuracy) {
+        double temp = lnX(x, accuracy) * y;
+        return xPowerOfE(temp, accuracy);
+    }
+
 
     public static double simplePow(double x, int n) {
         double res = 1;
@@ -31,14 +46,7 @@ public class TaylorFormula {
         return res;
     }
 
-    public static long factorial(long x) {
-        if (x == 0L) {
-            return 1;
-        }
-        long res = 1L;
-        for (int i = 1; i <= x; i++) {
-            res = (res * i) % Long.MAX_VALUE;
-        }
-        return res;
+    public static long factorial(int x) {
+        return factorialList[x];
     }
 }

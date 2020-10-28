@@ -30,11 +30,15 @@ public class Main {
         String str = "a+b*(b+c/d)/g";
         System.out.println(ReversePolishNotation.toPolishNotation(str));
 
-        System.out.println(TaylorFormula.xPowerOfE(1.5, 50));
+        System.out.println(TaylorFormula.xPowerOfE(1.5, 40));
         System.out.println(Math.pow(Math.E, 1.5));
 
-        System.out.println(TaylorFormula.lnX(1.5, 50));
+        System.out.println(TaylorFormula.lnX(1.5, 40));
         System.out.println(Math.log(1.5));
-    }
 
+        System.out.println(TaylorFormula.pow(2, 2, 40));
+        System.out.println(Math.pow(2, 2));
+
+        System.out.println(TaylorFormula.factorial(49));
+    }
 }
