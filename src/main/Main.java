@@ -6,7 +6,8 @@ import tree.tree.BinarySearchTree;
 public class Main {
 
     public static void main(String[] args) {
-        BinarySearchTree<String, Integer> binarySearchTree = new BinarySearchTree<>("root", 50);
+        BinarySearchTree<String, Integer> binarySearchTree;
+        binarySearchTree = new BinarySearchTree<>("root", 50);
 
         BinaryTreeNode<String, Integer> node;
         node = new BinaryTreeNode<>("1", 25);

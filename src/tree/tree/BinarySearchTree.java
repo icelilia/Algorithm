@@ -10,6 +10,10 @@ public class BinarySearchTree<K, V> {
     }
 
     public BinarySearchTree(BinaryTreeNode<K, V> binaryTreeNode) {
+        if (binaryTreeNode == null) {
+            System.err.println("rootNode can't be null");
+            System.exit(-1);
+        }
         rootNode = binaryTreeNode;
     }
 
