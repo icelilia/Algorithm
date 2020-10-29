@@ -2,19 +2,24 @@ package tree.tree;
 
 import tree.node.BinaryTreeNode;
 
-public class BinarySearchTree {
-    private final BinaryTreeNode rootNode;
+public class BinarySearchTree<K, V> {
+    private final BinaryTreeNode<K, V> rootNode;
 
-    public BinarySearchTree(String key, int value) {
-        rootNode = new BinaryTreeNode(key, value);
+    public BinarySearchTree(K key, V value) {
+        rootNode = new BinaryTreeNode<>(key, value);
     }
 
-    public BinarySearchTree(BinaryTreeNode binaryTreeNode) {
+    public BinarySearchTree(BinaryTreeNode<K, V> binaryTreeNode) {
         rootNode = binaryTreeNode;
     }
 
-    public void addNode(BinaryTreeNode binaryTreeNode) {
-        BinaryTreeNode temp = rootNode;
+    public BinaryTreeNode<K, V> getRootNode() {
+        return rootNode;
+    }
+
+
+    public void addNode(BinaryTreeNode<K, V> binaryTreeNode) {
+        BinaryTreeNode<K, V> temp = rootNode;
         do {
             // 新节点比当前节点小
             if (binaryTreeNode.compareTo(temp) <= 0) {
@@ -37,13 +42,27 @@ public class BinarySearchTree {
         } while (true);
     }
 
-    public void deleteNode(String key){
-        
+    public void traversal(BinaryTreeNode<K, V> rootNode, int order) {
+        if (rootNode == null) {
+            return;
+        }
+        switch (order) {
+            case -1:
+                System.out.println(rootNode.getKey() + "\t" + rootNode.getValue());
+                traversal(rootNode.getLeft(), -1);
+                traversal(rootNode.getRight(), -1);
+                return;
+            case 0:
+                traversal(rootNode.getLeft(), 0);
+                System.out.println(rootNode.getKey() + "\t" + rootNode.getValue());
+                traversal(rootNode.getRight(), 0);
+                return;
+            case 1:
+                traversal(rootNode.getLeft(), 1);
+                traversal(rootNode.getRight(), 1);
+                System.out.println(rootNode.getKey() + "\t" + rootNode.getValue());
+                return;
+        }
+        System.out.println("need order in {-1, 0, 1}");
     }
-
-    public void deleteNode(int value){
-
-    }
-
-
 }
