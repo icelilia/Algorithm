@@ -3,8 +3,10 @@ package tree.node;
 public class BinaryTreeNode<K, V> implements Comparable<BinaryTreeNode<K, V>> {
     private K key;
     private V value;
+    private BinaryTreeNode<K, V> parent;
     private BinaryTreeNode<K, V> left;
     private BinaryTreeNode<K, V> right;
+
 
     public BinaryTreeNode(K key, V value) {
         this.key = key;
@@ -25,6 +27,14 @@ public class BinaryTreeNode<K, V> implements Comparable<BinaryTreeNode<K, V>> {
 
     public void setValue(V value) {
         this.value = value;
+    }
+
+    public BinaryTreeNode<K, V> getParent() {
+        return parent;
+    }
+
+    public void setParent(BinaryTreeNode<K, V> parent) {
+        this.parent = parent;
     }
 
     public BinaryTreeNode<K, V> getLeft() {
