@@ -11,6 +11,7 @@ public class BracketMatch {
      * @return 是否匹配，true为匹配，false为不匹配
      */
     public static boolean isMatch(String str) {
+        stack.clear();
         char[] charArray = str.toCharArray();
         char c;
         for (char value : charArray) {
