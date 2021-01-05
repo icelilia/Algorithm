@@ -1,6 +1,9 @@
 package aes;
 
+import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -15,30 +18,43 @@ import java.util.regex.Pattern;
  */
 // 注意，由于Java中不存在无符号byte类型的数据，所以使用16位的short类型来储存byte
 public class AES {
-    private final short[] IV;
     private final short[] key;
+    private final short[] IV;
+    private final int mode;
     // 轮密钥二维数组
     private final short[][] roundKey = new short[11][16];
+    // 文件分割符常量
+    private final static String SEPARATOR = File.separator;
+    // 加密文件时原始ArrayList的默认大小
+    private final static int DEFAULT_FILE_LENGTH = 1024 * 1024 * 64;
 
     /**
      * <p>
-     * keyString为密钥字符串，IV为初始向量，二者的格式均为：^[0-9a-fA-F]{32}$
+     * key为密钥字符串，IV为初始向量字符串，二者的格式均为：^[0-9a-fA-F]{32}$
      * </p>
      * <p>
      * 二者均不区分大小写，任何不匹配的情况都会导致抛出异常
      * </p>
+     * <p>
+     * 分组连接的模式，0为ECB，1为CBC，其余则会抛出异常
+     * </p>
      *
-     * @param key 密钥字符串
-     * @param IV  初始向量字符串
+     * @param key  密钥字符串
+     * @param IV   初始向量字符串
+     * @param mode 分组连接的模式
      * @throws Exception 异常
      */
-    public AES(String key, String IV) throws Exception {
+    public AES(String key, String IV, int mode) throws Exception {
         String pattern = "^[0-9a-fA-F]{32}$";
         if (!Pattern.matches(pattern, key) || !Pattern.matches(pattern, IV)) {
             throw new Exception();
         }
+        if (mode != 0 && mode != 1) {
+            throw new Exception();
+        }
         this.key = stringToBytes(key);
         this.IV = stringToBytes(IV);
+        this.mode = mode;
         // 初始化轮密钥
         initRoundKey();
     }
@@ -173,16 +189,10 @@ public class AES {
     /**
      * PKCS7Padding填充
      *
-     * @param plaintext 明文字符串
-     * @return 填充后的byte数组
+     * @param o 待填充的数组
+     * @return 填充后的数组
      */
-    private short[] PKCS7Padding(String plaintext) {
-        // 直接获得明文字符串的UTF-8编码的byte数组
-        byte[] temp = plaintext.getBytes(StandardCharsets.UTF_8);
-        short[] o = new short[temp.length];
-        for (int i = 0; i < temp.length; i++) {
-            o[i] = (short) (temp[i] & 0xFF);
-        }
+    private short[] PKCS7Padding(short[] o) {
         // 填充
         int length = o.length;
         if (length % 16 == 0) {
@@ -205,6 +215,26 @@ public class AES {
     }
 
     /**
+     * <p>
+     * 去除PKCS7Padding填充
+     * </p>
+     * <p>
+     * 顺带将short数组转为byte数组
+     * </p>
+     *
+     * @param o 已填充的数组
+     * @return 去除填充后的数组
+     */
+    private byte[] PKCS7Padding_(short[] o) {
+        short temp = o[o.length - 1];
+        byte[] res = new byte[o.length - temp];
+        for (int i = 0; i < res.length; i++) {
+            res[i] = (byte) o[i];
+        }
+        return res;
+    }
+
+    /**
      * byte数组间的异或运算
      *
      * @param a 数组a
@@ -214,46 +244,232 @@ public class AES {
     private short[] xor(short[] a, short[] b) {
         short[] res = new short[a.length];
         for (int i = 0; i < a.length; i++) {
-            res[i] = (short) (a[i] ^ b[i]);
+            res[i] = (short) ((byte) a[i] ^ (byte) b[i]);
         }
         return res;
     }
 
     /**
-     * 加密接口，默认使用PKCS7Padding填充，UTF-8编码
+     * 预处理，将byte数组转化为short数组，方便后续操作
      *
-     * @param plaintext 待加密的明文
+     * @param o 待转化的byte数组
+     * @return 转化后的short数组
+     */
+    private short[] pretreatment(byte[] o) {
+        short[] res = new short[o.length];
+        for (int i = 0; i < o.length; i++) {
+            res[i] = (short) (o[i] & 0xFF);
+        }
+        return res;
+    }
+
+    /**
+     * <p>
+     * 加密字符串的接口
+     * </p>
+     * <p>
+     * 使用PKCS7Padding填充，UTF-8编码
+     * </p>
+     *
+     * @param plaintextString 待加密的明文字符串
      * @return 加密后的密文数组
      */
-    public short[] encrypt(String plaintext) {
+    public short[] encryptString(String plaintextString) {
+        // 先获得明文字符串的UTF-8编码的byte数组
+        byte[] originalPlaintextBytes = plaintextString.getBytes(StandardCharsets.UTF_8);
+        // 预处理，扩展为short数组
+        short[] originalPlaintextShorts = pretreatment(originalPlaintextBytes);
         // PKCS7Padding填充
-        short[] p = PKCS7Padding(plaintext);
+        short[] plaintext = PKCS7Padding(originalPlaintextShorts);
+        // 分组数组
         short[] group = new short[16];
         short[] lastGroup = new short[16];
         // 密文数组
-        short[] c = new short[p.length];
+        short[] ciphertext = new short[plaintext.length];
+        // CBC分组连接模式
+        if (mode == 1) {
+            // 只有一个分组
+            if (plaintext.length == 16) {
+                System.arraycopy(plaintext, 0, group, 0, 16);
+                // 1 与初始向量IV做异或
+                group = xor(IV, group);
+                // 2 AES十轮加密
+                group = aes(group);
+                System.arraycopy(group, 0, ciphertext, 0, 16);
+            }
+            // 多个分组
+            else {
+                // 视初始向量为上一个分组的密文
+                System.arraycopy(IV, 0, lastGroup, 0, 16);
+                for (int i = 0; i < plaintext.length; i += 16) {
+                    System.arraycopy(plaintext, i, group, 0, 16);
+                    // 1 与上一分组的密文做异或
+                    group = xor(lastGroup, group);
+                    // 2 AES十轮加密
+                    group = aes(group);
+                    System.arraycopy(group, 0, ciphertext, i, 16);
+                    // 3 更新lastGroup
+                    System.arraycopy(group, 0, lastGroup, 0, 16);
+                }
+            }
+        }
+        // ECB分组连接模式
+        else if (mode == 0) {
+            for (int i = 0; i < plaintext.length; i += 16) {
+                System.arraycopy(plaintext, i, group, 0, 16);
+                // 1 AES十轮加密
+                group = aes(group);
+                System.arraycopy(group, 0, ciphertext, i, 16);
+            }
+        }
+        return ciphertext;
+    }
+
+    /**
+     * <p>
+     * 加密文件的接口
+     * </p>
+     * <p>
+     * 使用PKCS7Padding填充
+     * </p>
+     * <p>
+     * 过程中会默认在同一文件夹下生成"源文件名 + .aes"的加密文件
+     * </p>
+     *
+     * @param inputFilePath 待加密文件的路径
+     * @return 密文数组
+     * @throws IOException 文件流相关的IO异常
+     */
+    public short[] encryptFile(String inputFilePath) throws IOException {
+        // 构建File对象的目的：
+        // 1. 快速验证inputFile是否存在
+        // 2. 配合getAbsolutePath去除inputFilePath末尾可能存在的路径分隔符
+        File inputFile = new File(inputFilePath);
+        String outputFilePath = inputFile.getAbsolutePath() + ".aes";
+        // 获取文件流
+        InputStream fileInputStream = new BufferedInputStream(new FileInputStream(inputFile));
+        OutputStream fileOutputStream = new BufferedOutputStream(new FileOutputStream(outputFilePath));
+        // ArrayList暂存数据
+        List<Short> originalShortList = new ArrayList<>(DEFAULT_FILE_LENGTH);
+        int b = 0;
+        while ((b = fileInputStream.read()) != -1) {
+            originalShortList.add((short) b);
+        }
+        // short数组
+        short[] originalShorts = new short[originalShortList.size()];
+        for (int i = 0; i < originalShorts.length; i++) {
+            originalShorts[i] = originalShortList.get(i);
+        }
+        // PKCS7Padding填充
+        short[] plaintext = PKCS7Padding(originalShorts);
+        // 分组数组
+        short[] group = new short[16];
+        short[] lastGroup = new short[16];
+        // 密文数组
+        short[] ciphertext = new short[plaintext.length];
+        if (mode == 1) {
+            // 只有一个分组
+            if (plaintext.length == 16) {
+                System.arraycopy(plaintext, 0, group, 0, 16);
+                // 1 与初始向量IV做异或
+                group = xor(IV, group);
+                // 2 AES十轮加密
+                group = aes(group);
+                System.arraycopy(group, 0, ciphertext, 0, 16);
+            } else {
+                System.arraycopy(IV, 0, lastGroup, 0, 16);
+                for (int i = 0; i < plaintext.length; i += 16) {
+                    System.arraycopy(plaintext, i, group, 0, 16);
+                    // 1 与上一分组的密文做异或
+                    group = xor(lastGroup, group);
+                    // 2 AES十轮加密
+                    group = aes(group);
+                    System.arraycopy(group, 0, ciphertext, i, 16);
+                    // 3 更新lastGroup
+                    System.arraycopy(group, 0, lastGroup, 0, 16);
+                }
+            }
+        } else if (mode == 0) {
+            for (int i = 0; i < plaintext.length; i += 16) {
+                System.arraycopy(plaintext, i, group, 0, 16);
+                // 1 AES十轮加密
+                group = aes(group);
+                System.arraycopy(group, 0, ciphertext, i, 16);
+            }
+        }
+        for (short value : ciphertext) {
+            fileOutputStream.write(value);
+        }
+        fileInputStream.close();
+        fileOutputStream.close();
+        return ciphertext;
+    }
+
+    /**
+     * <p>
+     * 加密文件的接口
+     * </p>
+     * <p>
+     * 使用PKCS7Padding填充
+     * </p>
+     * <p>
+     * 可以指定加密后生成的文件路径
+     * </p>
+     *
+     * @param inputFilePath  待加密文件的路径
+     * @param outputFilePath 加密后文件的路径
+     * @return 密文数组
+     * @throws IOException 文件流相关的IO异常
+     */
+    public short[] encryptFile(String inputFilePath, String outputFilePath) throws IOException {
+        // 获取文件流
+        InputStream fileInputStream = new BufferedInputStream(new FileInputStream(inputFilePath));
+        OutputStream fileOutputStream = new BufferedOutputStream(new FileOutputStream(outputFilePath));
+        // ArrayList暂存数据
+        List<Short> originalShortList = new ArrayList<>(DEFAULT_FILE_LENGTH);
+        int b = 0;
+        while ((b = fileInputStream.read()) != -1) {
+            originalShortList.add((short) b);
+        }
+        // short数组赋值
+        short[] originalShorts = new short[originalShortList.size()];
+        for (int i = 0; i < originalShorts.length; i++) {
+            originalShorts[i] = originalShortList.get(i);
+        }
+        // PKCS7Padding填充
+        short[] plaintext = PKCS7Padding(originalShorts);
+
+        short[] group = new short[16];
+        short[] lastGroup = new short[16];
+        // 密文数组
+        short[] ciphertext = new short[plaintext.length];
         // 只有一个分组
-        if (p.length == 16) {
-            System.arraycopy(p, 0, group, 0, 16);
+        if (plaintext.length == 16) {
+            System.arraycopy(plaintext, 0, group, 0, 16);
             // 1 与初始向量IV做异或
             group = xor(IV, group);
             // 2 AES十轮加密
             group = aes(group);
-            System.arraycopy(group, 0, c, 0, 16);
+            System.arraycopy(group, 0, ciphertext, 0, 16);
         } else {
             System.arraycopy(IV, 0, lastGroup, 0, 16);
-            for (int i = 0; i < p.length; i += 16) {
-                System.arraycopy(p, i, group, 0, 16);
+            for (int i = 0; i < plaintext.length; i += 16) {
+                System.arraycopy(plaintext, i, group, 0, 16);
                 // 1 与上一分组的密文做异或
                 group = xor(lastGroup, group);
                 // 2 AES十轮加密
                 group = aes(group);
-                System.arraycopy(group, 0, c, i, 16);
+                System.arraycopy(group, 0, ciphertext, i, 16);
                 // 3 更新lastGroup
                 System.arraycopy(group, 0, lastGroup, 0, 16);
             }
         }
-        return c;
+        for (short value : ciphertext) {
+            fileOutputStream.write(value);
+        }
+        fileInputStream.close();
+        fileOutputStream.close();
+        return ciphertext;
     }
 
     /**
@@ -287,48 +503,130 @@ public class AES {
     }
 
     /**
-     * 解密接口，默认使用PKCS7Padding填充，UTF-8编码
+     * <p>
+     * 解密字符串的接口
+     * </p>
+     * <p>
+     * 使用PKCS7Padding填充，UTF-8编码
+     * </p>
      *
-     * @param c 密文数组
+     * @param ciphertext 密文数组
      * @return 明文字符串
      */
-    public String decrypt(short[] c) {
+    public String decryptString(short[] ciphertext) {
+        // 分组数组
         short[] group = new short[16];
         short[] lastGroup = new short[16];
         // 明文数组
-        short[] p = new short[c.length];
-        // 只有一个分组
-        if (c.length == 16) {
-            System.arraycopy(c, 0, group, 0, 16);
-            // 1 AES十轮解密
-            group = aes_(group);
-            // 2 与初始向量IV做异或
-            group = xor(IV, group);
-            // 3 保存明文分组至p
-            System.arraycopy(group, 0, p, 0, 16);
-        } else {
-            System.arraycopy(IV, 0, lastGroup, 0, 16);
-            for (int i = 0; i < p.length; i += 16) {
-                System.arraycopy(c, i, group, 0, 16);
+        short[] plaintext = new short[ciphertext.length];
+        if (mode == 1) {
+            // 只有一个分组
+            if (ciphertext.length == 16) {
+                System.arraycopy(ciphertext, 0, group, 0, 16);
                 // 1 AES十轮解密
                 group = aes_(group);
-                // 2 与上一分组的密文做异或
-                group = xor(lastGroup, group);
-                // 3 更新lastGroup
-                System.arraycopy(c, i, lastGroup, 0, 16);
-                // 4 保存明文分组至p
-                System.arraycopy(group, 0, p, i, 16);
+                // 2 与初始向量IV做异或
+                group = xor(IV, group);
+                // 3 保存明文分组至p
+                System.arraycopy(group, 0, plaintext, 0, 16);
+            } else {
+                System.arraycopy(IV, 0, lastGroup, 0, 16);
+                for (int i = 0; i < plaintext.length; i += 16) {
+                    System.arraycopy(ciphertext, i, group, 0, 16);
+                    // 1 AES十轮解密
+                    group = aes_(group);
+                    // 2 与上一分组的密文做异或
+                    group = xor(lastGroup, group);
+                    // 3 更新lastGroup
+                    System.arraycopy(ciphertext, i, lastGroup, 0, 16);
+                    // 4 保存明文分组至p
+                    System.arraycopy(group, 0, plaintext, i, 16);
+                }
+            }
+        } else if (mode == 0) {
+            for (int i = 0; i < plaintext.length; i += 16) {
+                System.arraycopy(ciphertext, i, group, 0, 16);
+                // 1 AES十轮解密
+                group = aes_(group);
+                // 2 保存明文分组至p
+                System.arraycopy(group, 0, plaintext, i, 16);
             }
         }
         // 去除填充
-        short temp = p[p.length - 1];
-        // 原始明文数组
-        byte[] originalP = new byte[p.length - temp];
-        for (int i = 0; i < p.length - temp; i++) {
-            originalP[i] = (byte) p[i];
-        }
+        byte[] originalPlaintextBytes = PKCS7Padding_(plaintext);
         // 还原编码
-        return new String(originalP, StandardCharsets.UTF_8);
+        return new String(originalPlaintextBytes, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * <p>
+     * 解密文件的接口
+     * </p>
+     * <p>
+     * 使用PKCS7Padding填充
+     * </p>
+     *
+     * @param inputFilePath 加密文件的路径
+     */
+    public void decryptFile(String inputFilePath, String outputFilePath) throws IOException {
+        InputStream fileInputStream = new BufferedInputStream(new FileInputStream(inputFilePath));
+        OutputStream fileOutputStream = new BufferedOutputStream(new FileOutputStream(outputFilePath));
+        // ArrayList暂存数据
+        List<Short> originalShortList = new ArrayList<>(DEFAULT_FILE_LENGTH);
+        int b = 0;
+        while ((b = fileInputStream.read()) != -1) {
+            originalShortList.add((short) b);
+        }
+        // ciphertext数组赋值
+        short[] ciphertext = new short[originalShortList.size()];
+        for (int i = 0; i < ciphertext.length; i++) {
+            ciphertext[i] = originalShortList.get(i);
+        }
+        // 分组数组
+        short[] group = new short[16];
+        short[] lastGroup = new short[16];
+        // 明文数组
+        short[] plaintext = new short[ciphertext.length];
+        if (mode == 1) {
+            // 只有一个分组
+            if (ciphertext.length == 16) {
+                System.arraycopy(ciphertext, 0, group, 0, 16);
+                // 1 AES十轮解密
+                group = aes_(group);
+                // 2 与初始向量IV做异或
+                group = xor(IV, group);
+                // 3 保存明文分组至p
+                System.arraycopy(group, 0, plaintext, 0, 16);
+            } else {
+                System.arraycopy(IV, 0, lastGroup, 0, 16);
+                for (int i = 0; i < plaintext.length; i += 16) {
+                    System.arraycopy(ciphertext, i, group, 0, 16);
+                    // 1 AES十轮解密
+                    group = aes_(group);
+                    // 2 与上一分组的密文做异或
+                    group = xor(lastGroup, group);
+                    // 3 更新lastGroup
+                    System.arraycopy(ciphertext, i, lastGroup, 0, 16);
+                    // 4 保存明文分组至p
+                    System.arraycopy(group, 0, plaintext, i, 16);
+                }
+            }
+        } else if (mode == 0) {
+            for (int i = 0; i < plaintext.length; i += 16) {
+                System.arraycopy(ciphertext, i, group, 0, 16);
+                // 1 AES十轮解密
+                group = aes_(group);
+                // 2 保存明文分组至p
+                System.arraycopy(group, 0, plaintext, i, 16);
+            }
+        }
+        // 去除填充
+        byte[] originalPlaintextBytes = PKCS7Padding_(plaintext);
+        for (byte value : originalPlaintextBytes) {
+            fileOutputStream.write(value);
+        }
+        fileInputStream.close();
+        fileOutputStream.close();
     }
 
     /**

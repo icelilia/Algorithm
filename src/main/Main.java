@@ -2,30 +2,41 @@ package main;
 
 import aes.AES;
 
-import java.nio.charset.StandardCharsets;
-
 public class Main {
 
     public static void main(String[] args) {
-        AES aes;
+        String key = "4307252000072919151234567890ABCD";
+        String IV = "00000000000000000000000000000000";
+        String plaintext = "日月昭昭，故国有明";
+        short[] ciphertext;
         try {
-            aes = new AES("4307252000072919151234567890ABCD", "00000000000000000000000000000000");
+            AES aes = new AES(key, IV, 0);
+
+            System.out.println("明文：");
+            System.out.println(plaintext);
+
+            ciphertext = aes.encryptString(plaintext);
+            System.out.println("密文：");
+            for (short value : ciphertext) {
+                System.out.printf("%02x", (byte) value);
+            }
+            System.out.println();
+
+            plaintext = aes.decryptString(ciphertext);
+            System.out.println("还原明文：");
+            System.out.println(plaintext);
+
+            ciphertext = aes.encryptFile("C:\\Users\\Spotted_Dog\\Desktop\\test.txt");
+            System.out.println("文件密文：");
+            for (short value : ciphertext) {
+                System.out.printf("%02x", (byte) value);
+            }
+            System.out.println();
+
+            aes.decryptFile("C:\\Users\\Spotted_Dog\\Desktop\\test.txt.aes", "C:\\Users\\Spotted_Dog\\Desktop\\test-new.txt");
+
         } catch (Exception e) {
-            return;
+            e.printStackTrace();
         }
-        byte[] originalP = "日月昭昭，故国有明".getBytes(StandardCharsets.UTF_8);
-        short[] c = aes.encrypt("日月昭昭，故国有明");
-        System.out.println("原始明文数组：");
-        for (byte value : originalP) {
-            System.out.printf("%02x ", value);
-        }
-        System.out.println();
-        System.out.println("密文数组：");
-        for (short value : c) {
-            System.out.printf("%02x ", (byte) value);
-        }
-        System.out.println();
-        System.out.println("明文字符串：");
-        System.out.println(aes.decrypt(c));
     }
 }
