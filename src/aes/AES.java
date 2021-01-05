@@ -4,7 +4,6 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * <p>
@@ -42,16 +41,9 @@ public class AES {
      * @param key  密钥字符串
      * @param IV   初始向量字符串
      * @param mode 分组连接的模式
-     * @throws Exception 异常
      */
-    public AES(String key, String IV, int mode) throws Exception {
+    public AES(String key, String IV, int mode) {
         String pattern = "^[0-9a-fA-F]{32}$";
-        if (!Pattern.matches(pattern, key) || !Pattern.matches(pattern, IV)) {
-            throw new Exception();
-        }
-        if (mode != 0 && mode != 1) {
-            throw new Exception();
-        }
         this.key = stringToBytes(key);
         this.IV = stringToBytes(IV);
         this.mode = mode;

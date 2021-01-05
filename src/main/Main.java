@@ -1,42 +1,96 @@
 package main;
 
 import aes.AES;
+import string.MD5;
+
+import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
-        String key = "4307252000072919151234567890ABCD";
-        String IV = "00000000000000000000000000000000";
-        String plaintext = "日月昭昭，故国有明";
-        short[] ciphertext;
-        try {
-            AES aes = new AES(key, IV, 0);
+        Scanner scanner = new Scanner(System.in);
+        String option;
+        String key;
+        String IV;
+        String inputFilePath;
+        String outputFilePath;
+        // 开始界面
+        divider();
+        System.out.println("AES Encrypt and Decrypt Program by Spotted Dog");
+        divider();
+        System.out.println("#       option");
+        System.out.println("1       encrypt");
+        System.out.println("2       decrypt");
+        System.out.println("other   quit");
+        divider();
+        System.out.print("Please choose your option:");
 
-            System.out.println("明文：");
-            System.out.println(plaintext);
-
-            ciphertext = aes.encryptString(plaintext);
-            System.out.println("密文：");
-            for (short value : ciphertext) {
-                System.out.printf("%02x", (byte) value);
+        option = scanner.nextLine();
+        if (option.contentEquals("1")) {
+            divider();
+            System.out.println("Input your password. Anything is OK, but You should remember it:");
+            key = scanner.nextLine();
+            key = MD5.stringToMD5(key);
+            divider();
+            System.out.println("Input your bias vector, the requirements are the same as above:");
+            IV = scanner.nextLine();
+            IV = MD5.stringToMD5(IV);
+            divider();
+            System.out.println("Input the full path of the input file that you want to encrypt:");
+            inputFilePath = scanner.nextLine();
+            divider();
+            System.out.println("Input the full path of the output file. If it's empty, it will use a default value:");
+            outputFilePath = scanner.nextLine();
+            divider();
+            if (outputFilePath.contentEquals("")) {
+                try {
+                    AES aes = new AES(key, IV, 1);
+                    aes.encryptFile(inputFilePath);
+                    System.out.println("OK, the file has been encrypted with the suffix '.aes' in the same directory.");
+                } catch (Exception e) {
+                    System.out.println("Ops, an unknown error occurred during encryption.");
+                }
+            } else {
+                try {
+                    AES aes = new AES(key, IV, 1);
+                    aes.encryptFile(inputFilePath, outputFilePath);
+                    System.out.println("OK, the file has been encrypted.");
+                } catch (Exception e) {
+                    System.out.println("Ops, an unknown error occurred during encryption.");
+                }
             }
-            System.out.println();
-
-            plaintext = aes.decryptString(ciphertext);
-            System.out.println("还原明文：");
-            System.out.println(plaintext);
-
-            ciphertext = aes.encryptFile("C:\\Users\\Spotted_Dog\\Desktop\\test.txt");
-            System.out.println("文件密文：");
-            for (short value : ciphertext) {
-                System.out.printf("%02x", (byte) value);
+        } else if (option.contentEquals("2")) {
+            divider();
+            System.out.println("Input your password:");
+            key = scanner.nextLine();
+            key = MD5.stringToMD5(key);
+            divider();
+            System.out.println("Input your bias vector:");
+            IV = scanner.nextLine();
+            IV = MD5.stringToMD5(IV);
+            divider();
+            System.out.println("Input the full path of the input file that you want to decrypt:");
+            inputFilePath = scanner.nextLine();
+            divider();
+            System.out.println("Input the full path of the output file:");
+            outputFilePath = scanner.nextLine();
+            divider();
+            try {
+                AES aes = new AES(key, IV, 1);
+                aes.decryptFile(inputFilePath, outputFilePath);
+                System.out.println("OK, the file has been decrypted.");
+            } catch (Exception e) {
+                System.out.println("Ops, an unknown error occurred during decryption.");
             }
-            System.out.println();
-
-            aes.decryptFile("C:\\Users\\Spotted_Dog\\Desktop\\test.txt.aes", "C:\\Users\\Spotted_Dog\\Desktop\\test-new.txt");
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+        divider();
+        System.out.println("Press \"Enter\" to quit.");
+        divider();
+        option = scanner.nextLine();
+        scanner.close();
+    }
+
+    private static void divider() {
+        System.out.println("===================================================================================");
     }
 }

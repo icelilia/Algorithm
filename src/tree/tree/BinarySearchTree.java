@@ -26,24 +26,21 @@ public class BinarySearchTree<K, V> {
             return;
         }
         switch (order) {
-            case -1 -> {
+            case -1:
                 System.out.println(rootNode.getKey() + "\t" + rootNode.getValue());
                 traversal(rootNode.getLeft(), -1);
                 traversal(rootNode.getRight(), -1);
-                return;
-            }
-            case 0 -> {
+                break;
+            case 0:
                 traversal(rootNode.getLeft(), 0);
                 System.out.println(rootNode.getKey() + "\t" + rootNode.getValue());
                 traversal(rootNode.getRight(), 0);
-                return;
-            }
-            case 1 -> {
+                break;
+            case 1:
                 traversal(rootNode.getLeft(), 1);
                 traversal(rootNode.getRight(), 1);
                 System.out.println(rootNode.getKey() + "\t" + rootNode.getValue());
-                return;
-            }
+                break;
         }
         System.out.println("need order in {-1, 0, 1}");
     }
