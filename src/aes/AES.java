@@ -43,7 +43,6 @@ public class AES {
      * @param mode 分组连接的模式
      */
     public AES(String key, String IV, int mode) {
-        String pattern = "^[0-9a-fA-F]{32}$";
         this.key = stringToBytes(key);
         this.IV = stringToBytes(IV);
         this.mode = mode;
