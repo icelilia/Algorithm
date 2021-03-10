@@ -37,7 +37,6 @@ public class TaylorFormula {
         return xPowerOfE(temp, accuracy);
     }
 
-
     public static double simplePow(double x, int n) {
         double res = 1;
         for (int i = 0; i < n; i++) {
