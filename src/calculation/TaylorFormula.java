@@ -1,4 +1,4 @@
-package taylorFormula;
+package calculation;
 
 public class TaylorFormula {
 
