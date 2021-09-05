@@ -16,7 +16,7 @@ public class Main {
 
         // 开始界面
         divider();
-        System.out.println("AES Encrypt and Decrypt Program by Spotted Dog");
+        System.out.println("AES Encrypt and Decrypt Program by EZ4DRIFT");
         divider();
         System.out.println("#       option");
         System.out.println("1       encrypt");

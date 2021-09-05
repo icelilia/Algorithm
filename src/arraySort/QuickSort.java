@@ -134,7 +134,7 @@ public class QuickSort {
         int i = leftIndex - 1;
 
         if (isIncSort) {
-            // (leftIndex, i]为小于pivotValue的区间
+            // [leftIndex, i]为小于pivotValue的区间
             // [i + 1, j)为大于pivotValue的区间
             for (int j = leftIndex; j < rightIndex; j++) {
                 if (orderlyArray.get(j) <= pivotValue) {
